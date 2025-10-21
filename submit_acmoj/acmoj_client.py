@@ -11,7 +11,7 @@ Usage Examples:
 2. Query submission status:
    python3 acmoj_client.py --token ${ACMOJ_TOKEN} status --submission-id <your_submission_id>
    Note: Evaluation takes time, it's recommended to wait 10 seconds before querying status
-   For example, if the returned result shows "status": "compiling" or "status": "pending", 
+   For example, if the returned result shows "status": "compiling" or "status": "pending",
    it means the evaluation is still in progress or queued, please check again later
 
 3. Abort submission:
@@ -38,9 +38,9 @@ class ACMOJClient:
         }
 
         self.submission_log_file = '/workspace/submission_ids.log'
-        
 
-    def _make_request(self, method: str, endpoint: str, data: Dict[str, Any] = None, 
+
+    def _make_request(self, method: str, endpoint: str, data: Dict[str, Any] = None,
                      params: Dict[str, Any] = None) -> Optional[Dict]:
         url = f"{self.api_base}{endpoint}"
         try:
@@ -56,7 +56,7 @@ class ACMOJClient:
                 return {"status": "success", "message": "Operation successful"}
 
             response.raise_for_status()
-            
+
             if response.content:
                 return response.json()
             else:
@@ -75,10 +75,10 @@ class ACMOJClient:
                 "timestamp": timestamp,
                 "submission_id": submission_id
             }
-            
+
             with open(self.submission_log_file, 'a') as f:
                 f.write(json.dumps(log_entry) + '\n')
-            
+
             print(f"✅ Submission ID {submission_id} saved to {self.submission_log_file}")
         except Exception as e:
             print(f"⚠️ Warning: Failed to save submission ID: {e}")
@@ -98,11 +98,19 @@ class ACMOJClient:
         return self._make_request("POST", f"/submission/{submission_id}/abort")
 
 
+    def submit_code(self, problem_id: int, language: str, code: str) -> Optional[Dict]:
+        data = {"language": language, "code": code}
+        result = self._make_request("POST", f"/problem/{problem_id}/submit", data=data)
+        if result and 'id' in result:
+            self._save_submission_id(result['id'])
+        return result
+
+
 def main():
     parser = argparse.ArgumentParser(description="ACMOJ API Command Line Client")
-    parser.add_argument("--token", help="ACMOJ Access Token", 
+    parser.add_argument("--token", help="ACMOJ Access Token",
                        default=os.environ.get("ACMOJ_TOKEN"))
-    
+
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Submit C++ source file
