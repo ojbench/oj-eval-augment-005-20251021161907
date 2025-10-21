@@ -118,15 +118,23 @@ bool QoiEncode(uint32_t width, uint32_t height, uint8_t channels, uint8_t colors
                         QoiWriteU8(b1);
                         QoiWriteU8(b2);
                     } else {
-                        // QOI_OP_RGB
-                        QoiWriteU8(QOI_OP_RGB_TAG);
-                        QoiWriteU8(r);
-                        QoiWriteU8(g);
-                        QoiWriteU8(b);
+                        // Fallback literal: for RGB images emit RGB, for RGBA images emit RGBA
+                        if (channels == 4) {
+                            QoiWriteU8(QOI_OP_RGBA_TAG);
+                            QoiWriteU8(r);
+                            QoiWriteU8(g);
+                            QoiWriteU8(b);
+                            QoiWriteU8(a);
+                        } else {
+                            QoiWriteU8(QOI_OP_RGB_TAG);
+                            QoiWriteU8(r);
+                            QoiWriteU8(g);
+                            QoiWriteU8(b);
+                        }
                     }
                 }
             } else {
-                // QOI_OP_RGBA
+                // QOI_OP_RGBA (alpha changed)
                 QoiWriteU8(QOI_OP_RGBA_TAG);
                 QoiWriteU8(r);
                 QoiWriteU8(g);
